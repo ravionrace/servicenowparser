@@ -1,0 +1,175 @@
+// src/components/Navbar.jsx
+import React from 'react';
+
+const Navbar = () => {
+  return (
+    <nav className="bg-snow-dark text-white shadow-md">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+          </svg>
+          <span className="font-bold text-xl">ServiceNow Workflow Viewer</span>
+        </div>
+        <div>
+          <a 
+            href="https://github.com/your-username/workflow-viewer" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-sm hover:text-snow-accent transition-colors"
+          >
+            <div className="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              GitHub
+            </div>
+          </a>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
+
+// src/components/WorkflowUploader.jsx
+import React, { useState } from 'react';
+import { parseWorkflowXml } from '../utils/workflowParser';
+import workflowService from '../services/workflowService';
+
+const WorkflowUploader = ({ onWorkflowParsed }) => {
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [parseLocal, setParseLocal] = useState(true);
+  
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    setError(null);
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!file) {
+      setError('Please select a file');
+      return;
+    }
+    
+    if (!file.name.endsWith('.xml')) {
+      setError('Please upload an XML file');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      let workflowData;
+      
+      if (parseLocal) {
+        // Parse locally
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const xmlString = event.target.result;
+            workflowData = parseWorkflowXml(xmlString);
+            onWorkflowParsed(workflowData);
+            setLoading(false);
+          } catch (err) {
+            console.error('Error parsing XML locally:', err);
+            setError('Failed to parse workflow XML. Please check the file format.');
+            setLoading(false);
+          }
+        };
+        reader.readAsText(file);
+      } else {
+        // Parse using backend service
+        workflowData = await workflowService.getWorkflowDetails(file);
+        onWorkflowParsed(workflowData);
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('Error processing workflow:', err);
+      setError('Failed to process workflow. Please try again.');
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <div className="bg-snow-secondary rounded-lg p-4 mb-6 shadow-sm">
+      <h2 className="text-snow-dark font-semibold mb-4">Upload Workflow XML</h2>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            ServiceNow Workflow XML File
+          </label>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            accept=".xml"
+            className="block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-snow-primary file:text-white
+                      hover:file:bg-blue-600
+                      cursor-pointer"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Upload your ServiceNow workflow XML export file
+          </p>
+        </div>
+        
+        <div className="mb-4">
+          <label className="inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={parseLocal}
+              onChange={() => setParseLocal(!parseLocal)}
+              className="rounded border-gray-300 text-snow-primary focus:ring-snow-primary"
+            />
+            <span className="ml-2 text-sm text-gray-700">Parse locally (no server upload)</span>
+          </label>
+        </div>
+        
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full py-2 px-4 rounded-md font-medium text-white 
+                     ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-snow-primary hover:bg-blue-600'} 
+                     transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-snow-primary`}
+        >
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Processing...
+            </span>
+          ) : (
+            'Load Workflow'
+          )}
+        </button>
+      </form>
+      
+      {error && (
+        <div className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+          {error}
+        </div>
+      )}
+      
+      {file && !error && !loading && (
+        <div className="mt-3 text-sm text-snow-dark">
+          Ready to load: <span className="font-semibold">{file.name}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default WorkflowUploader;

@@ -1,0 +1,76 @@
+// src/components/ActivityNode.jsx
+import React, { memo } from 'react';
+import { Handle, Position } from 'react-flow-renderer';
+
+const ActivityNode = ({ data }) => {
+  const { activity, style = {} } = data;
+  const { name, activityDefinition } = activity;
+  
+  // Get activity type for styling
+  const getNodeTypeClass = () => {
+    if (name === 'Begin') return 'bg-snow-primary text-white';
+    if (name === 'End') return 'bg-snow-accent text-white';
+    if (name.includes('Branch')) return 'bg-yellow-100 border-yellow-400';
+    if (name.includes('Join')) return 'bg-indigo-100 border-indigo-400';
+    if (name.includes('Create')) return 'bg-orange-100 border-orange-400';
+    return 'bg-snow-secondary border-snow-primary';
+  };
+  
+  // Get icon for the node based on activity type
+  const getNodeIcon = () => {
+    if (name === 'Begin') return (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+      </svg>
+    );
+    if (name === 'End') return (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    );
+    if (name.includes('Branch')) return (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+      </svg>
+    );
+    if (name.includes('Join')) return (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    );
+    if (name.includes('Create')) return (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    );
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+      </svg>
+    );
+  };
+  
+  return (
+    <div
+      className={`node py-2 px-3 border rounded-md shadow-sm ${getNodeTypeClass()}`}
+      style={style}
+    >
+      <Handle type="target" position={Position.Top} />
+      
+      <div className="flex items-center mb-1">
+        <div className="mr-2">{getNodeIcon()}</div>
+        <div className="font-medium text-sm truncate">{name}</div>
+      </div>
+      
+      {activityDefinition && (
+        <div className="text-xs opacity-70 truncate">
+          {activityDefinition}
+        </div>
+      )}
+      
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
+};
+
+export default memo(ActivityNode);

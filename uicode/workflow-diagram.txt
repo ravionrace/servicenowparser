@@ -1,0 +1,51 @@
+// src/components/WorkflowDiagram.jsx
+import React, { useCallback, useEffect, useState } from 'react';
+import ReactFlow, { 
+  Background, 
+  Controls, 
+  MiniMap,
+  useNodesState, 
+  useEdgesState,
+  addEdge,
+  MarkerType
+} from 'react-flow-renderer';
+import ActivityNode from './ActivityNode';
+
+// Define custom node types
+const nodeTypes = {
+  activityNode: ActivityNode,
+};
+
+const WorkflowDiagram = ({ workflowData, onActivitySelected }) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  
+  // Convert workflow data to nodes and edges for ReactFlow
+  useEffect(() => {
+    if (!workflowData) return;
+    
+    const { workflowVersion, activities, transitions, conditions } = workflowData;
+    
+    // Create nodes from activities
+    const flowNodes = Object.values(activities).map((activity) => {
+      // Determine node type
+      let type = 'activityNode';
+      let nodeStyle = {};
+      
+      // If this is the start activity, style it differently
+      if (activity.id === workflowVersion.startActivityId) {
+        nodeStyle.borderColor = '#2E72D2';
+        nodeStyle.borderWidth = 2;
+        nodeStyle.backgroundColor = '#E8F0FC';
+      }
+      
+      // If this is an end activity, style it differently
+      if (activity.name === 'End') {
+        nodeStyle.backgroundColor = '#58D68D';
+        nodeStyle.color = 'white';
+      }
+      
+      return {
+        id: activity.id,
+        type,
+        position: { x: parseInt(activity

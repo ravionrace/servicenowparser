@@ -1,0 +1,54 @@
+// src/components/TransitionLink.jsx
+import React, { memo } from 'react';
+import { getBezierPath, EdgeText } from 'react-flow-renderer';
+
+const TransitionLink = ({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  style = {},
+  data,
+  arrowHeadType,
+  markerEndId,
+}) => {
+  const edgePath = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  // Get the condition name
+  const conditionName = data?.conditionName || '';
+
+  return (
+    <>
+      <path
+        id={id}
+        style={style}
+        className="react-flow__edge-path"
+        d={edgePath}
+        markerEnd={markerEndId}
+      />
+      {conditionName && (
+        <EdgeText
+          x={targetX - 30}
+          y={targetY - 30}
+          label={conditionName}
+          labelStyle={{ fill: 'black', fontWeight: 500, fontSize: 10 }}
+          labelBgStyle={{ fill: 'white', opacity: 0.75 }}
+          labelBgPadding={[2, 4]}
+          labelBgBorderRadius={2}
+        />
+      )}
+    </>
+  );
+};
+
+export default memo(TransitionLink);

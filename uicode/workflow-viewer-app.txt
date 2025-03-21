@@ -1,0 +1,37 @@
+// Project structure for a React app with Tailwind CSS to display ServiceNow workflows
+
+/*
+workflow-viewer/
+├── public/
+│   ├── index.html
+│   └── favicon.ico
+├── src/
+│   ├── components/
+│   │   ├── WorkflowUploader.jsx
+│   │   ├── WorkflowSummary.jsx
+│   │   ├── WorkflowDiagram.jsx
+│   │   ├── ActivityNode.jsx
+│   │   ├── TransitionLink.jsx
+│   │   ├── ActivityDetails.jsx
+│   │   └── Navbar.jsx
+│   ├── services/
+│   │   └── workflowService.js
+│   ├── utils/
+│   │   └── workflowParser.js
+│   ├── App.jsx
+│   ├── index.jsx
+│   └── index.css
+├── package.json
+├── tailwind.config.js
+└── postcss.config.js
+*/
+
+// To create a new React app with Tailwind CSS:
+// 1. npx create-react-app workflow-viewer
+// 2. cd workflow-viewer
+// 3. npm install -D tailwindcss postcss autoprefixer
+// 4. npx tailwindcss init -p
+// 5. npm install react-router-dom axios react-flow-renderer
+
+// This is just a representation of the project structure.
+// The actual code for each component is provided in separate artifacts.

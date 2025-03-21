@@ -1,0 +1,130 @@
+// src/components/WorkflowDiagram.jsx
+import React, { useCallback, useEffect, useState } from 'react';
+import ReactFlow, { 
+  Background, 
+  Controls, 
+  MiniMap,
+  useNodesState, 
+  useEdgesState,
+  addEdge,
+  MarkerType
+} from 'react-flow-renderer';
+import ActivityNode from './ActivityNode';
+
+// Define custom node types
+const nodeTypes = {
+  activityNode: ActivityNode,
+};
+
+const WorkflowDiagram = ({ workflowData, onActivitySelected }) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  
+  // Convert workflow data to nodes and edges for ReactFlow
+  useEffect(() => {
+    if (!workflowData) return;
+    
+    const { workflowVersion, activities, transitions, conditions } = workflowData;
+    
+    // Create nodes from activities
+    const flowNodes = Object.values(activities).map((activity) => {
+      // Determine node type
+      let type = 'activityNode';
+      let nodeStyle = {};
+      
+      // If this is the start activity, style it differently
+      if (activity.id === workflowVersion.startActivityId) {
+        nodeStyle.borderColor = '#2E72D2';
+        nodeStyle.borderWidth = 2;
+        nodeStyle.backgroundColor = '#E8F0FC';
+      }
+      
+      // If this is an end activity, style it differently
+      if (activity.name === 'End') {
+        nodeStyle.backgroundColor = '#58D68D';
+        nodeStyle.color = 'white';
+      }
+      
+      return {
+        id: activity.id,
+        type,
+        position: { 
+          x: parseInt(activity.x) * 2, 
+          y: parseInt(activity.y) * 2 
+        },
+        data: { 
+          label: activity.name,
+          activity,
+          style: nodeStyle
+        },
+      };
+    });
+    
+    // Create edges from transitions
+    let flowEdges = [];
+    
+    Object.entries(transitions).forEach(([fromId, transitionList]) => {
+      transitionList.forEach((transition) => {
+        // Find the condition for this transition
+        const condition = conditions[transition.conditionId];
+        const conditionName = condition ? condition.name : '';
+        
+        flowEdges.push({
+          id: transition.id,
+          source: transition.fromActivityId,
+          target: transition.toActivityId,
+          label: conditionName,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20
+          },
+          style: { strokeWidth: 2 },
+        });
+      });
+    });
+    
+    setNodes(flowNodes);
+    setEdges(flowEdges);
+  }, [workflowData]);
+  
+  // Handle node click
+  const onNodeClick = (event, node) => {
+    if (onActivitySelected) {
+      onActivitySelected(node.data.activity);
+    }
+  };
+  
+  return (
+    <div className="w-full h-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        onNodeClick={onNodeClick}
+        fitView
+        attributionPosition="bottom-left"
+      >
+        <Controls />
+        <MiniMap
+          nodeStrokeColor={(n) => {
+            if (n.type === 'input') return '#2E72D2';
+            if (n.type === 'output') return '#58D68D';
+            return '#1E3A5F';
+          }}
+          nodeColor={(n) => {
+            if (n.type === 'input') return '#2E72D2';
+            if (n.type === 'output') return '#58D68D';
+            return '#F1F6FB';
+          }}
+          nodeBorderRadius={2}
+        />
+        <Background color="#aaa" gap={16} />
+      </ReactFlow>
+    </div>
+  );
+};
+
+export default WorkflowDiagram;
